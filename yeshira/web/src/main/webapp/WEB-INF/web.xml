@@ -19,7 +19,7 @@
 		be specified for component-scanning -->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>org.yeshira.filters,org.yeshira.config,org.yeshira.service.impl</param-value>
+		<param-value>org.yeshira.web.filters,org.yeshira.web.config,org.yeshira.model.service.impl</param-value>
 	</context-param>
 
 	<context-param>
@@ -65,7 +65,7 @@
 			and fully-qualified @Configuration classes -->
 		<init-param>
 			<param-name>contextConfigLocation</param-name>
-			<param-value>org.yeshira.controllers</param-value>
+			<param-value>org.yeshira.web.controllers</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
