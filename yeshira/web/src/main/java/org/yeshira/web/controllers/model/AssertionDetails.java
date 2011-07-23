@@ -1,11 +1,26 @@
 package org.yeshira.web.controllers.model;
 
+import org.codehaus.jackson.annotate.JsonSetter;
+
 public class AssertionDetails {
 	private String status;
 	private String email;
 	private String audience;
-	private long valid_until;
+	private long validUntil;
 	private String issuer;
+	private String reason;
+
+	public boolean isSuccess() {
+		return "okay".equals(status);
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
 
 	public String getStatus() {
 		return status;
@@ -19,8 +34,8 @@ public class AssertionDetails {
 		return audience;
 	}
 
-	public long getValid_until() {
-		return valid_until;
+	public long getValidUntil() {
+		return validUntil;
 	}
 
 	public String getIssuer() {
@@ -39,8 +54,9 @@ public class AssertionDetails {
 		this.audience = audience;
 	}
 
-	public void setValid_until(long valid_until) {
-		this.valid_until = valid_until;
+	@JsonSetter(value="valid-until")
+	public void setValidUntil(long validUntil) {
+		this.validUntil = validUntil;
 	}
 
 	public void setIssuer(String issuer) {

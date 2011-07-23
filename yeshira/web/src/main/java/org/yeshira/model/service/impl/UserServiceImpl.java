@@ -1,5 +1,7 @@
 package org.yeshira.model.service.impl;
 
+import org.jcouchdb.db.Database;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yeshira.model.AbstractDomainObject;
 import org.yeshira.model.User;
@@ -8,10 +10,16 @@ import org.yeshira.model.service.UserService;
 @Component
 public class UserServiceImpl implements UserService {
 
+	private Database db;
+
+	@Autowired
+	public void setDb(Database db) {
+		this.db = db;
+	}
+
 	@Override
 	public void saveUser(User user) {
-		// TODO Auto-generated method stub
-
+		db.createOrUpdateDocument(user.getDocument());
 	}
 
 	@Override

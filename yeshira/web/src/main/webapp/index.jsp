@@ -15,14 +15,21 @@
 	$(document).ready(function() {
 		$("#signin").click(function() {
 			navigator.id.getVerifiedEmail(function(assertion) {
-			    if (assertion) {
-			        // This code will be invoked once the user has successfully
-			        // selected an email address they control to sign in with.
-			        alert("Login succesful");
-			    } else {
-			        // something went wrong!  the user isn't logged in.
-			        alert("Login Failed, please try again")
-			    }
+				if (assertion) {
+					// This code will be invoked once the user has successfully
+					// selected an email address they control to sign in with.
+					$.post("user/login", {
+						assertion : assertion
+					}).success(function() {
+						alert("Login succesful");
+					}).error(function() {
+						alert("Hack attempt");
+					});
+
+				} else {
+					// something went wrong!  the user isn't logged in.
+					alert("Login Failed, please try again")
+				}
 			});
 		});
 	});

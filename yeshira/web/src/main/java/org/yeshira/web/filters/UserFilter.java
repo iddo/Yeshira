@@ -253,10 +253,9 @@ public class UserFilter implements Filter {
 
 		//TODO externalize
 		rememberMeIdCookie.setDomain("iddo.homeip.net");
-		rememberMeIdCookie.setPath("/prkr");
+		rememberMeIdCookie.setPath(request.getContextPath());
 		rememberMeHashCookie.setDomain("iddo.homeip.net");
-		rememberMeHashCookie.setPath("/prkr");
-
+		rememberMeHashCookie.setPath(request.getContextPath());
 		
 		if (useCookie && user != null) {
 			// Renew the cookies

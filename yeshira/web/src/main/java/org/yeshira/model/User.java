@@ -8,7 +8,6 @@ public class User extends AbstractDomainObject {
 	private static final Logger logger = Logger.getLogger(User.class);
 
 	public static final String PROPERTY_EMAIL = "email";
-	public static final String PROPERTY_PASSWORD_HASH = "password";
 	public static final String PROPERTY_PHONE_NUMBER = "phone";
 
 	public User() {
@@ -27,20 +26,12 @@ public class User extends AbstractDomainObject {
 		return (String) getProperty(PROPERTY_EMAIL);
 	}
 
-	public void setPassword(String password) {
-		this.setProperty(PROPERTY_PASSWORD_HASH, password);
-	}
-
 	public void setPhone(String phone) {
 		this.setProperty(PROPERTY_PHONE_NUMBER, phone);
 	}
 
 	public String getPhone() {
 		return (String) getProperty(PROPERTY_PHONE_NUMBER);
-	}
-
-	public String getPasswordHash() {
-		return (String) getProperty(PROPERTY_PASSWORD_HASH);
 	}
 
 	public String getDisplayName() {

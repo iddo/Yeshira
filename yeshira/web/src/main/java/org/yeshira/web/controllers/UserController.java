@@ -68,19 +68,25 @@ public class UserController {
 			IOException {
 		AssertionDetails assertionDetails = extractAssertionDetails(assertion);
 
-		// TODO validate assertion details is ok
-		
-		User user = userService.getUserByEmail(assertionDetails.getEmail());
-		if (user == null) {
-			// create user in system
-			user = new User();
-			user.setEmail(assertionDetails.getEmail());
-			userService.saveUser(user);
+		// validate assertion details is ok
+		if (assertionDetails.isSuccess()) {
+
+			User user = userService.getUserByEmail(assertionDetails.getEmail());
+			if (user == null) {
+				// create user in system
+				user = new User();
+				user.setEmail(assertionDetails.getEmail());
+				userService.saveUser(user);
+			}
+
+			userFilter.setUser(user, request, response,
+					Boolean.TRUE.equals(rememberMe));
+
+			return new UserView(user);
+		} else {
+			throw new ValidationException("Login failed. "
+					+ assertionDetails.getReason());
 		}
-
-		userFilter.setUser(user, request, response, Boolean.TRUE.equals(rememberMe));
-
-		return new UserView(user);
 	}
 
 	private AssertionDetails extractAssertionDetails(String assertion)
@@ -90,7 +96,7 @@ public class UserController {
 		URL url = new URL("https://browserid.org/verify");
 		URLConnection connection = url.openConnection();
 		StringBuilder sb = new StringBuilder();
-		sb.append("audience=directparty.co.il&assertion=");
+		sb.append("audience=localhost:8080&assertion=");
 		sb.append(URLEncoder.encode(assertion, "UTF-8"));
 		connection.setDoOutput(true);
 
