@@ -26,6 +26,8 @@ public interface UserService {
 
 	User getUserById(String userId);
 
+	User getUserByEmail(String userEmail);
+
 	User getParkingById(String parkingId);
 
 	User login(String userEmail, String password);

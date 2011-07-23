@@ -50,4 +50,10 @@ public class UserServiceImpl implements UserService {
 		return null;
 	}
 
+	@Override
+	public User getUserByEmail(String userEmail) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

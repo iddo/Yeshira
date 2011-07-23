@@ -1,10 +1,19 @@
 package org.yeshira.web.controllers;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.Collection;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,7 +25,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.yeshira.model.User;
 import org.yeshira.model.service.UserService;
 import org.yeshira.model.service.views.UserView;
-import org.yeshira.utils.DigestUtils;
+import org.yeshira.utils.JsonUtils;
+import org.yeshira.web.controllers.model.AssertionDetails;
 import org.yeshira.web.controllers.validation.ValidationError;
 import org.yeshira.web.controllers.validation.exceptions.ValidationException;
 import org.yeshira.web.filters.UserFilter;
@@ -26,63 +36,73 @@ import org.yeshira.web.filters.UserFilter;
  */
 @Controller
 public class UserController {
+	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(UserController.class);
 
-	private static final String FIELD_REMEMBER_ME  = "rememberme";
+	private static final String FIELD_REMEMBER_ME = "rememberme";
+
+	private static final String PARAMETER_ASSERTION = "assertion";
 
 	private UserService userService;
 	private UserFilter userFilter;
-	
+	private JsonUtils jsonUtils;
+
+	@Autowired
+	public void setJsonUtils(JsonUtils jsonUtils) {
+		this.jsonUtils = jsonUtils;
+	}
+
 	@Autowired
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}
-	
-	private DigestUtils digestUtils;
-	
-	@Autowired
-	public void setWebUtils(DigestUtils digestUtils) {
-		this.digestUtils = digestUtils;
-	}
 
-
-	@RequestMapping(value="/user/register",method=RequestMethod.POST)
-	@ResponseBody
-	public UserView register(HttpServletRequest request, HttpServletResponse response,
-			@RequestParam(User.PROPERTY_EMAIL) String email,
-			@RequestParam(User.PROPERTY_PASSWORD_HASH) String password,
-			@RequestParam(User.PROPERTY_PHONE_NUMBER) String phone) {
-		User user = new User();
-		user.setEmail(email);
-		user.setPassword(digestUtils.sh1(password));
-		user.setPhone(phone);
-
-		userService.saveUser(user);
-		
-		userFilter.setUser(user, request, response, false);
-		
-		return new UserView(user);
-	}
-	
 	@RequestMapping(value = "/user/login", method = RequestMethod.POST)
 	@ResponseBody
-	public UserView login(HttpServletRequest request, HttpServletResponse response,
-			@RequestParam(User.PROPERTY_EMAIL) String userEmail,
-			@RequestParam(User.PROPERTY_PASSWORD_HASH) String password,
-			@RequestParam(value = FIELD_REMEMBER_ME, required = false) Boolean rememberMe) {
+	public UserView login(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@RequestParam(value = FIELD_REMEMBER_ME, required = false) Boolean rememberMe,
+			@RequestParam(PARAMETER_ASSERTION) String assertion)
+			throws MalformedURLException, UnsupportedEncodingException,
+			IOException {
+		AssertionDetails assertionDetails = extractAssertionDetails(assertion);
 
-		User user = userService.login(userEmail, digestUtils.sh1(password));
-		if (user != null) {
-			logger.info("User logged in " + user);
-			userFilter.setUser(user, request, response, Boolean.TRUE.equals(rememberMe));
-		} else {
-			throw new ValidationException("שם משתמש או סיסמה שגויים");
+		// TODO validate assertion details is ok
+		
+		User user = userService.getUserByEmail(assertionDetails.getEmail());
+		if (user == null) {
+			// create user in system
+			user = new User();
+			user.setEmail(assertionDetails.getEmail());
+			userService.saveUser(user);
 		}
-	
+
+		userFilter.setUser(user, request, response, Boolean.TRUE.equals(rememberMe));
+
 		return new UserView(user);
 	}
-	
-	@RequestMapping(value="/user/logout", method = RequestMethod.GET)
+
+	private AssertionDetails extractAssertionDetails(String assertion)
+			throws MalformedURLException, IOException,
+			UnsupportedEncodingException {
+		// validate assertion with mozilla BrowserID and extract details
+		URL url = new URL("https://browserid.org/verify");
+		URLConnection connection = url.openConnection();
+		StringBuilder sb = new StringBuilder();
+		sb.append("audience=directparty.co.il&assertion=");
+		sb.append(URLEncoder.encode(assertion, "UTF-8"));
+		connection.setDoOutput(true);
+
+		IOUtils.write(sb.toString(), connection.getOutputStream());
+		List<String> jsonLines = IOUtils.readLines(connection.getInputStream(),
+				"UTF-8");
+		String json = StringUtils.join(jsonLines, null);
+		return jsonUtils.fromJsonString(json, AssertionDetails.class);
+
+	}
+
+	@RequestMapping(value = "/user/logout", method = RequestMethod.GET)
 	@ResponseBody
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		userFilter.setUser(null, request, response, true);
@@ -92,10 +112,11 @@ public class UserController {
 	public void setUserFilter(UserFilter userFilter) {
 		this.userFilter = userFilter;
 	}
-	
+
 	@ExceptionHandler(ValidationException.class)
 	@ResponseBody
-	public Collection<ValidationError> handleValidationException(ValidationException exception, HttpServletResponse response) {
+	public Collection<ValidationError> handleValidationException(
+			ValidationException exception, HttpServletResponse response) {
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		return exception.getErrors();
 	}
