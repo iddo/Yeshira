@@ -10,7 +10,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UrlPathHelper;
 import org.springframework.web.util.WebUtils;
 import org.yeshira.model.User;
-import org.yeshira.model.service.UserService;
 import org.yeshira.utils.JsonUtils;
 
 /**
@@ -41,34 +39,17 @@ public class UserFilter implements Filter {
 
 	private static Log logger = LogFactory.getLog(UserFilter.class);
 
-	private UserService userService;
-
-	private String remembermeCookieIdName;
-	private String remembermeCookieTokenName;
-	private int remembermeCookieMaxAge;
-
 	private UrlPathHelper urlPathHelper;
 
 	private JsonUtils jsonUtils;
 
 	@Resource
 	public void setConfig(@Qualifier("config") Properties config) {
-		this.remembermeCookieIdName = config
-				.getProperty("cookie.rememberme.id.name");
-		this.remembermeCookieTokenName = config
-				.getProperty("cookie.rememberme.token.name");
-		this.remembermeCookieMaxAge = Integer.parseInt(config
-				.getProperty("cookie.rememberme.maxage"));
 	}
 
 	@Autowired
 	public void setJsonUtils(JsonUtils jsonUtils) {
 		this.jsonUtils = jsonUtils;
-	}
-
-	@Autowired
-	public void setUserService(UserService userService) {
-		this.userService = userService;
 	}
 
 	@Override
@@ -80,17 +61,6 @@ public class UserFilter implements Filter {
 	public void doFilter(ServletRequest servletRequest,
 			ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
-
-		HttpServletRequest httpRequest = null;
-		try {
-			httpRequest = HttpServletRequest.class.cast(servletRequest);
-		} catch (ClassCastException e) {
-		}
-
-		if (httpRequest != null) {
-			getCurrentUser(httpRequest, (HttpServletResponse) servletResponse);
-		}
-
 		filterChain.doFilter(servletRequest, servletResponse);
 	}
 
@@ -115,16 +85,11 @@ public class UserFilter implements Filter {
 	 */
 	public User getCurrentUserOrRedirect(HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
-		User user = getCurrentUser(request, response);
+		User user = getCurrentUser(request);
 		if (user == null) {
 			redirectToLogin(request, response, null);
 		}
 		return user;
-	}
-
-	public void redirectToLogin(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException {
-		redirectToLogin(request, response, null);
 	}
 
 	public void redirectToLogin(HttpServletRequest request,
@@ -159,75 +124,6 @@ public class UserFilter implements Filter {
 	}
 
 	/**
-	 * Gets the current user from session, and if not found searches for the
-	 * correct cookies and logs the user in
-	 * <p/>
-	 * Note: Don't use inside a controller using UserFilter because this will
-	 * waste cpu
-	 */
-	public User getCurrentUser(HttpServletRequest request,
-			HttpServletResponse response) {
-		User currentUser = (User) WebUtils.getSessionAttribute(request,
-				CURRENT_USER_SESSION_ATTRIBUTE);
-
-		if (currentUser == null) {
-			// Retrieve the cookies
-			Cookie rememberMeIdCookie = null, rememberMeHashCookie = null;
-			Cookie[] cookies = request.getCookies();
-			if (cookies != null) {
-				for (Cookie cookie : cookies)
-				// Get both cookies in a single pass
-				{
-					if (rememberMeIdCookie == null
-							&& cookie.getName().equals(remembermeCookieIdName)) {
-						rememberMeIdCookie = cookie;
-						if (rememberMeHashCookie != null) {
-							break;
-						}
-					} else if (rememberMeHashCookie == null
-							&& cookie.getName().equals(
-									remembermeCookieTokenName)) {
-						rememberMeHashCookie = cookie;
-						if (rememberMeIdCookie != null) {
-							break;
-						}
-					}
-				}
-			}
-
-			// If the relavent cookies exist log the user in
-			if (rememberMeIdCookie != null && rememberMeHashCookie != null) {
-				try {
-					currentUser = userService.loginByToken(
-							rememberMeIdCookie.getValue(),
-							rememberMeHashCookie.getValue());
-				} catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(
-								"Unable to login user using email '"
-										+ rememberMeIdCookie.getValue()
-										+ "' and token '"
-										+ rememberMeHashCookie.getValue() + "'",
-								e);
-					}
-				}
-
-				setUser(currentUser, request, response, true);
-			}
-		} /*
-		 * else { // Update the user from cache/persistency currentUser =
-		 * userService.loadUserById(currentUser.getId()); }
-		 * 
-		 * if (currentUser != null) { try { if (currentUser.getBalance() ==
-		 * null) { // Update the balance and re-get the object
-		 * currentUser.setBalance(userService.getUserBalance(currentUser)); }
-		 * updateSessionUser(currentUser, request); } catch (Exception e) {
-		 * logger.debug(e); } }
-		 */
-		return currentUser;
-	}
-
-	/**
 	 * Get the current user from the reqest attribute
 	 * 
 	 * @param request
@@ -239,44 +135,6 @@ public class UserFilter implements Filter {
 	}
 
 	/**
-	 * Sets the currently logged in user along with the necessary cookies
-	 * 
-	 * @param user
-	 *            the user to set or null to clear the cookies
-	 * @param response
-	 */
-	public void setUser(User user, HttpServletRequest request,
-			HttpServletResponse response, boolean useCookie) {
-		Cookie rememberMeIdCookie = new Cookie(remembermeCookieIdName, null);
-		Cookie rememberMeHashCookie = new Cookie(remembermeCookieTokenName,
-				null);
-
-		//TODO externalize
-		rememberMeIdCookie.setDomain("iddo.homeip.net");
-		rememberMeIdCookie.setPath(request.getContextPath());
-		rememberMeHashCookie.setDomain("iddo.homeip.net");
-		rememberMeHashCookie.setPath(request.getContextPath());
-		
-		if (useCookie && user != null) {
-			// Renew the cookies
-			rememberMeIdCookie.setValue(user.getId());
-			rememberMeIdCookie.setMaxAge(remembermeCookieMaxAge);
-
-			rememberMeHashCookie.setValue(userService.getUserToken(user));
-			rememberMeHashCookie.setMaxAge(remembermeCookieMaxAge);
-		} else {
-			// Delete the false cookies
-			rememberMeIdCookie.setMaxAge(0);
-			rememberMeHashCookie.setMaxAge(0);
-		}
-		// Add the cookies to the response
-		response.addCookie(rememberMeHashCookie);
-		response.addCookie(rememberMeIdCookie);
-
-		updateSessionUser(user, request);
-	}
-
-	/**
 	 * Updates the session attribute with a new user object (when updating user
 	 * information or getting a new version from the DB)
 	 * 
@@ -284,8 +142,8 @@ public class UserFilter implements Filter {
 	 * @param request
 	 */
 	public void updateSessionUser(User user, HttpServletRequest request) {
-		WebUtils.setSessionAttribute(request,
-				CURRENT_USER_SESSION_ATTRIBUTE, null);
+		WebUtils.setSessionAttribute(request, CURRENT_USER_SESSION_ATTRIBUTE,
+				null);
 		if (user != null) {
 			logger.debug(jsonUtils.toJsonString(user));
 		} else {

@@ -1,5 +1,9 @@
 package org.yeshira.model.service;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+
 import org.yeshira.model.AbstractDomainObject;
 import org.yeshira.model.User;
 
@@ -20,15 +24,10 @@ public interface UserService {
 	 */
 	AbstractDomainObject getById(String id);
 
-	String getUserToken(User user);
-
-	User loginByToken(String userId, String token);
-
 	User getUserById(String userId);
 
 	User getUserByEmail(String userEmail);
 
-	User getParkingById(String parkingId);
-
-	User login(String userEmail, String password);
+	User login(String assertion, String realm) throws MalformedURLException,
+			UnsupportedEncodingException, IOException;
 }

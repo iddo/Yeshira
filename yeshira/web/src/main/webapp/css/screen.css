@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+
+/* Base Styles */
+#signIn {
+	cursor: pointer;
+}
+
+#signOut {
+	cursor: pointer;
+	display: none;
+}
+
+/* Logged-In styles */
+.loggedIn #signin {
+	display: none;
+}
+
+.loggedIn #signout {
+	display: block;
+}

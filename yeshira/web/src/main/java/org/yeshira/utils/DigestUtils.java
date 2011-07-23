@@ -9,41 +9,47 @@ import org.apache.log4j.Logger;
 
 public class DigestUtils {
 	private static final Logger logger = Logger.getLogger(DigestUtils.class);
-	
+
 	private static final String MESSAGE_DIGEST_SHA1 = "SHA-1";
 	private static final String MESSAGE_DIGEST_MD5 = "MD5";
-	
+
 	private Map<String, MessageDigest> messageDigesters;
-	
+
 	public DigestUtils() throws NoSuchAlgorithmException {
 		this.messageDigesters = new HashMap<String, MessageDigest>();
-		messageDigesters.put(MESSAGE_DIGEST_SHA1, MessageDigest.getInstance(MESSAGE_DIGEST_SHA1));
-		messageDigesters.put(MESSAGE_DIGEST_MD5, MessageDigest.getInstance(MESSAGE_DIGEST_MD5));
+		messageDigesters.put(MESSAGE_DIGEST_SHA1,
+				MessageDigest.getInstance(MESSAGE_DIGEST_SHA1));
+		messageDigesters.put(MESSAGE_DIGEST_MD5,
+				MessageDigest.getInstance(MESSAGE_DIGEST_MD5));
 	}
 
 	public String digest(String plainText, String algorithm)
 			throws NoSuchAlgorithmException {
 		MessageDigest mdAlgorithm = messageDigesters.get(algorithm);
 		if (mdAlgorithm == null) {
-			MessageDigest.getInstance(algorithm);
+			mdAlgorithm = MessageDigest.getInstance(algorithm);
+			messageDigesters.put(algorithm, mdAlgorithm);
 		}
-		mdAlgorithm.reset();
+		// Message Digestors are not thread-safe
+		synchronized (mdAlgorithm) {
+			mdAlgorithm.reset();
 
-		mdAlgorithm.update(plainText.getBytes());
+			mdAlgorithm.update(plainText.getBytes());
 
-		byte[] digest = mdAlgorithm.digest();
-		StringBuffer hexString = new StringBuffer();
+			byte[] digest = mdAlgorithm.digest();
+			StringBuffer hexString = new StringBuffer();
 
-		for (byte element : digest) {
-			plainText = Integer.toHexString(0xFF & element);
+			for (byte element : digest) {
+				plainText = Integer.toHexString(0xFF & element);
 
-			if (plainText.length() < 2)
-				plainText = "0" + plainText;
+				if (plainText.length() < 2)
+					plainText = "0" + plainText;
 
-			hexString.append(plainText);
+				hexString.append(plainText);
+			}
+			return hexString.toString();
 		}
 
-		return hexString.toString();
 	}
 
 	public String md5(String plainText) {
