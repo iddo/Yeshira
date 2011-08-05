@@ -21,6 +21,8 @@ import org.jcouchdb.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yeshira.model.AbstractDomainObject;
+import org.yeshira.model.Document;
+import org.yeshira.model.Paragraph;
 import org.yeshira.model.User;
 import org.yeshira.model.service.UserAlreadyExistsException;
 import org.yeshira.model.service.UserService;
@@ -76,12 +78,56 @@ public class UserServiceImpl implements UserService {
 				throw new UserAlreadyExistsException(
 						"A user with that e-mail already exists");
 			}
-			db.createDocument(user.getDocument());
+			db.createDocument(user.getBaseDocument());
 		} else {
-			db.updateDocument(user.getDocument());
+			db.updateDocument(user.getBaseDocument());
 		}
 
-		db.createOrUpdateDocument(user.getDocument());
+		db.createOrUpdateDocument(user.getBaseDocument());
+	}
+
+	public void saveDocument(Document document, List<Paragraph> paragraphs) {
+		// TODO: validate document
+
+		if (document.isSaved()) {
+			for (Paragraph par : paragraphs) {
+				saveParagraph(par, document);
+			}
+			document.setParagraphs(paragraphs);
+			db.updateDocument(document.getBaseDocument());
+		} else {
+			// save document to get document id
+			db.createDocument(document.getBaseDocument());
+			// save paragraphs
+			for (Paragraph par : paragraphs) {
+				saveParagraph(par, document);
+			}
+			// modify document to point to paragraphs and save
+			document.setParagraphs(paragraphs);
+		}
+
+	}
+
+	/**
+	 * Paragraph can only be saved as part of a document
+	 * 
+	 * @param par
+	 * @param document
+	 */
+	private void saveParagraph(Paragraph par, Document document) {
+		if (par.getDocumentId() != null
+				&& !par.getDocumentId().equals(document.getId())) {
+			throw new ValidationException(
+					"Cannot re-assign a paragraph to a different document");
+		}
+		par.setDocument(document);
+
+		// TODO: validate paragraph
+		if (par.isSaved()) {
+			db.updateDocument(par.getBaseDocument());
+		} else {
+			db.createDocument(par.getBaseDocument());
+		}
 	}
 
 	@Override

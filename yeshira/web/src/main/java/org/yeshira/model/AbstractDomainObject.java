@@ -12,11 +12,14 @@ public abstract class AbstractDomainObject {
 	
 	public static final String PROPERTY_TYPE  = "type";
 	public static final String PROPERTY_ID  = "_id";
+	public static final String PROPERTY_DATE  = "created";
 	
 	private BaseDocument document;
 	
 	protected AbstractDomainObject() {
 		this(new BaseDocument());
+		// Every object has a creation date
+		setProperty(PROPERTY_DATE, System.currentTimeMillis());
 	}
 	
 	protected AbstractDomainObject(BaseDocument document) {
@@ -27,7 +30,7 @@ public abstract class AbstractDomainObject {
 	public static String getClassDescriptor(Object o) {
 		return getClassDescriptor(o.getClass());
 	}
-
+	
 	public static String getClassDescriptor(Class<? extends Object> clazz) {
 		return clazz.getSimpleName().toLowerCase();
 	}
@@ -40,7 +43,7 @@ public abstract class AbstractDomainObject {
 		document.setProperty(name, value);
 	}
 	
-	public BaseDocument getDocument() {
+	public BaseDocument getBaseDocument() {
 		return document;
 	}
 	
@@ -93,6 +96,10 @@ public abstract class AbstractDomainObject {
 		}
 		
 		return null;
+	}
+	
+	public Long getCreationDate() {
+		return (Long) getProperty(PROPERTY_DATE);
 	}
 
 	@Override
