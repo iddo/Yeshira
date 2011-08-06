@@ -35,22 +35,17 @@ public class Document extends AbstractUserObject {
 	}
 
 	public void setParagraphs(List<Paragraph> paragraphs) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
+		String[] paragraphIds = new String[paragraphs.size()];
+		int i=0;
 		for (Paragraph par : paragraphs) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append(",");
-			}
-			sb.append(par.getId());
+			paragraphIds[i++] = par.getId();
 		}
-		this.setParagraphs(paragraphs);
-		setProperty(PROPERTY_PARAGRAPHES, sb.toString());
+		setProperty(PROPERTY_PARAGRAPHES, paragraphIds);
 	}
 
-	public String[] getParagraphIds() {
-		return ((String) getProperty(PROPERTY_PARAGRAPHES)).split(",");
+	@SuppressWarnings("unchecked")
+	public List<String> getParagraphIds() {
+		return (List<String>) getProperty(PROPERTY_PARAGRAPHES);
 	}
 
 }

@@ -2,9 +2,7 @@ package org.yeshira.model.service.impl;
 
 import java.util.List;
 
-import org.jcouchdb.db.Database;
 import org.jcouchdb.document.BaseDocument;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yeshira.model.Document;
 import org.yeshira.model.Paragraph;
@@ -13,13 +11,6 @@ import org.yeshira.web.controllers.validation.exceptions.ValidationException;
 
 @Service
 public class DocumentServiceImpl extends AbstractService implements DocumentService {
-
-	private Database db;
-
-	@Autowired
-	public void setDb(Database db) {
-		this.db = db;
-	}
 
 	@Override
 	public void saveDocument(Document document, List<Paragraph> paragraphs) {

@@ -15,6 +15,10 @@ public class ValidationError {
 		this.errorMessage = errorMessage;
 	}
 
+	public ValidationError(String errorMessage) {
+		this(null, errorMessage);
+	}
+
 	public String getField() {
 		return field;
 	}

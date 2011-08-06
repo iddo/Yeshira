@@ -31,7 +31,7 @@ public abstract class AbstractService {
 		return null;
 	}
 
-	protected List<? extends AbstractDomainObject> getByIds(String[] ids) {
+	protected List<? extends AbstractDomainObject> getByIds(List<String> ids) {
 		// TODO: get multiple documents directly from db
 		List<AbstractDomainObject> baseDocuments = new Vector<AbstractDomainObject>();
 		for (String id : ids) {

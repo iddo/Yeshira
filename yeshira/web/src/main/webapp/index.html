@@ -23,7 +23,7 @@
 					}).success(function(data) {
 						// Login succesfull
 						$("body").addClass("loggedIn")
-						alert("Welcome " + $.parseJSON(data).email);
+						alert("Welcome " + data.email);
 					}).error(function(data, textStatus, httpStatus) {
 						alert("Login failed (" + httpStatus + ")");
 					});
@@ -40,6 +40,20 @@
 				alert("Error logging out (" + httpStatus + ")");
 			});
 		});
+		$("form").submit(function(eventObject) {
+			$.ajax(this.action, {
+				type : this.method,
+				data : $(this).serialize()
+			}).success(function(data) {
+				if (data.id) {
+					$("body").append($("<div>Object of type '" + data.type + "' returned. id <a href=\"" + data.type + "/" + data.id + "\">" + data.id + "</a></div>" ));
+				}
+				console.log(data)
+			}).error(function(data) {
+				console.log(data)
+			});
+			return false;
+		});
 	});
 </script>
 <title>בחירה ישירה</title>
@@ -48,5 +62,11 @@
 	<img id="signin" src="https://browserid.org/i/sign_in_red.png"
 		alt="Sign In using Mozilla's BrowserID" />
 	<span id="signout">Sign Out</span>
+	<form action="document/create" method="post" class="document">
+		<label for="title">Title</label><input type="text" name="title"
+			id="title" /> <label for="content">Content</label>
+		<textarea name="content" id="content"></textarea>
+		<button type="submit">Create Document</button>
+	</form>
 </body>
 </html>

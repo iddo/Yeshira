@@ -17,7 +17,7 @@ public class ValidationException extends RuntimeException {
 
 	public ValidationException(String generalError) {
 		this.validationErrors = new Vector<ValidationError>();
-		validationErrors.add(new ValidationError(null, generalError));
+		validationErrors.add(new ValidationError(generalError));
 	}
 	
 	public ValidationException(String field, String errorMessage) {

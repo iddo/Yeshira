@@ -143,7 +143,7 @@ public class UserFilter implements Filter {
 	 */
 	public void updateSessionUser(User user, HttpServletRequest request) {
 		WebUtils.setSessionAttribute(request, CURRENT_USER_SESSION_ATTRIBUTE,
-				null);
+				user);
 		if (user != null) {
 			logger.debug(jsonUtils.toJsonString(user));
 		} else {

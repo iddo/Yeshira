@@ -52,10 +52,12 @@ public abstract class AbstractController {
 	}
 
 	@ExceptionHandler(NotLoggedInException.class)
-	public void handleValidationException(NotLoggedInException exception,
+	@ResponseBody
+	public ValidationError handleNotLoggedInException(NotLoggedInException exception,
 			HttpServletResponse response) throws IOException {
-		response.sendError(HttpServletResponse.SC_FORBIDDEN,
-				"User must log in to perform this action");
+		String msg = "User must log in to perform this action";
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		return new ValidationError(msg);
 	}
 
 }

@@ -101,6 +101,10 @@ public abstract class AbstractDomainObject {
 	public Long getCreationDate() {
 		return (Long) getProperty(PROPERTY_DATE);
 	}
+	
+	public String getType() {
+		return (String) getProperty(PROPERTY_TYPE);
+	}
 
 	@Override
 	public int hashCode() {

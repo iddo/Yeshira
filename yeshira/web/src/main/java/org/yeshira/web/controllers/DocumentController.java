@@ -1,15 +1,13 @@
 package org.yeshira.web.controllers;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,8 +17,6 @@ import org.yeshira.model.Paragraph;
 import org.yeshira.model.User;
 import org.yeshira.web.controllers.exceptions.NotLoggedInException;
 import org.yeshira.web.controllers.model.DocumentView;
-import org.yeshira.web.controllers.validation.ValidationError;
-import org.yeshira.web.controllers.validation.exceptions.ValidationException;
 
 /**
  * Servlet implementation class Summary
@@ -31,7 +27,7 @@ public class DocumentController extends AbstractController {
 	private static final Logger logger = Logger
 			.getLogger(DocumentController.class);
 
-	private static final String PARAMETER_DOCUMENT_CONTENT = "contnet";
+	private static final String PARAMETER_DOCUMENT_CONTENT = "content";
 
 	@RequestMapping(value = "/document/create", method = RequestMethod.POST)
 	@ResponseBody
@@ -60,10 +56,10 @@ public class DocumentController extends AbstractController {
 		return new DocumentView(document, paragraphs, currentUser);
 	}
 
-	@RequestMapping(value = "/document/create", method = RequestMethod.POST)
+	@RequestMapping(value = "/document/{" + Paragraph.PROPERTY_DOCUMENT +"}" , method = RequestMethod.GET)
 	@ResponseBody
 	public DocumentView getDocument(HttpServletRequest request,
-			@RequestParam(Paragraph.PROPERTY_DOCUMENT) String documentId)
+			@PathVariable(Paragraph.PROPERTY_DOCUMENT) String documentId)
 			throws NotLoggedInException {
 		User currentUser = userFilter.getCurrentUser(request);
 		if (currentUser == null) {
@@ -73,14 +69,6 @@ public class DocumentController extends AbstractController {
 		Document document = documentService.getDocument(documentId);
 		return new DocumentView(document, paragraphService.getParagraphs(document),
 				userService.getUserById(document.getUserId()));
-	}
-
-	@ExceptionHandler(ValidationException.class)
-	@ResponseBody
-	public Collection<ValidationError> handleValidationException(
-			ValidationException exception, HttpServletResponse response) {
-		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-		return exception.getErrors();
 	}
 
 }
