@@ -8,7 +8,9 @@ public abstract class AbstractUserObject extends AbstractDomainObject {
 	private static final Logger logger = Logger
 			.getLogger(AbstractDomainObject.class);
 
-	private static final String PROPERTY_USER = "user";
+	public static final String PROPERTY_USER = "user";
+	
+	private transient User user;
 
 	protected AbstractUserObject(User user) {
 		super();
@@ -20,7 +22,11 @@ public abstract class AbstractUserObject extends AbstractDomainObject {
 
 	}
 
-	public void setUser(User user) {
+	protected User getUser() {
+		return user;
+	}
+
+	private void setUser(User user) {
 		setProperty(PROPERTY_USER, user.getId());
 	}
 

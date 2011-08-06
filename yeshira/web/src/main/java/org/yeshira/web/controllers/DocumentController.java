@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,42 +17,32 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.yeshira.model.Document;
 import org.yeshira.model.Paragraph;
 import org.yeshira.model.User;
-import org.yeshira.model.service.UserService;
+import org.yeshira.web.controllers.exceptions.NotLoggedInException;
 import org.yeshira.web.controllers.model.DocumentView;
 import org.yeshira.web.controllers.validation.ValidationError;
 import org.yeshira.web.controllers.validation.exceptions.ValidationException;
-import org.yeshira.web.filters.UserFilter;
 
 /**
  * Servlet implementation class Summary
  */
 @Controller
-public class DocumentController {
+public class DocumentController extends AbstractController {
 	@SuppressWarnings("unused")
-	private static final Logger logger = Logger.getLogger(DocumentController.class);
+	private static final Logger logger = Logger
+			.getLogger(DocumentController.class);
 
 	private static final String PARAMETER_DOCUMENT_CONTENT = "contnet";
-
-	private UserService userService;
-	private UserFilter userFilter;
-
-	@Autowired
-	public void setUserService(UserService userService) {
-		this.userService = userService;
-	}
-
-	@Autowired
-	public void setUserFilter(UserFilter userFilter) {
-		this.userFilter = userFilter;
-	}
 
 	@RequestMapping(value = "/document/create", method = RequestMethod.POST)
 	@ResponseBody
 	public DocumentView createDocument(HttpServletRequest request,
 			@RequestParam(PARAMETER_DOCUMENT_CONTENT) String content,
-			@RequestParam(Document.PROPERTY_TITLE) String title) {
+			@RequestParam(Document.PROPERTY_TITLE) String title)
+			throws NotLoggedInException {
 		User currentUser = userFilter.getCurrentUser(request);
-		
+		if (currentUser == null) {
+			throw new NotLoggedInException();
+		}
 
 		Document document = new Document(currentUser);
 		document.setTitle(title);
@@ -65,12 +54,27 @@ public class DocumentController {
 			par.setContent(parContent);
 			paragraphs.add(par);
 		}
-		
-		userService.saveDocument(document, paragraphs);
 
-		return new DocumentView(document, paragraphs);
+		documentService.saveDocument(document, paragraphs);
+
+		return new DocumentView(document, paragraphs, currentUser);
 	}
-	
+
+	@RequestMapping(value = "/document/create", method = RequestMethod.POST)
+	@ResponseBody
+	public DocumentView getDocument(HttpServletRequest request,
+			@RequestParam(Paragraph.PROPERTY_DOCUMENT) String documentId)
+			throws NotLoggedInException {
+		User currentUser = userFilter.getCurrentUser(request);
+		if (currentUser == null) {
+			throw new NotLoggedInException();
+		}
+
+		Document document = documentService.getDocument(documentId);
+		return new DocumentView(document, paragraphService.getParagraphs(document),
+				userService.getUserById(document.getUserId()));
+	}
+
 	@ExceptionHandler(ValidationException.class)
 	@ResponseBody
 	public Collection<ValidationError> handleValidationException(

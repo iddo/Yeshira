@@ -45,6 +45,8 @@ public class Document extends AbstractUserObject {
 			}
 			sb.append(par.getId());
 		}
+		this.setParagraphs(paragraphs);
+		setProperty(PROPERTY_PARAGRAPHES, sb.toString());
 	}
 
 	public String[] getParagraphIds() {

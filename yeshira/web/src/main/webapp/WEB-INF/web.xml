@@ -70,6 +70,12 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
+
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>/*.html</url-pattern>
+	</servlet-mapping>
+
 	<!-- map all requests to the dispatcher servlet -->
 	<servlet-mapping>
 		<servlet-name>dispatcher</servlet-name>
@@ -92,8 +98,13 @@
 		<url-pattern>*.js</url-pattern>
 	</servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.html</url-pattern>
+	</servlet-mapping>
+
 	<welcome-file-list>
-		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 
 </web-app>

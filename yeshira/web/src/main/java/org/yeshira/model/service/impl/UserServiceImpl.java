@@ -12,17 +12,12 @@ import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.jcouchdb.db.Database;
 import org.jcouchdb.db.Options;
 import org.jcouchdb.document.BaseDocument;
 import org.jcouchdb.document.ValueAndDocumentRow;
 import org.jcouchdb.document.ViewAndDocumentsResult;
-import org.jcouchdb.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yeshira.model.AbstractDomainObject;
-import org.yeshira.model.Document;
-import org.yeshira.model.Paragraph;
 import org.yeshira.model.User;
 import org.yeshira.model.service.UserAlreadyExistsException;
 import org.yeshira.model.service.UserService;
@@ -33,7 +28,7 @@ import org.yeshira.web.controllers.validation.ValidatorsAggregator;
 import org.yeshira.web.controllers.validation.exceptions.ValidationException;
 
 @Component
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends AbstractService implements UserService {
 	private static final Logger logger = Logger
 			.getLogger(UserServiceImpl.class);
 	private static final Logger audit = Logger.getLogger("audit");
@@ -41,8 +36,6 @@ public class UserServiceImpl implements UserService {
 	private static final String CONFIG_ASSERTION_VERIFICATION_SERIVE_URL = "assertion.verification.url";
 
 	private static final String VIEW_USERS = "web/users";
-
-	private Database db;
 
 	private String assertionVerificationServiceUrl;
 
@@ -57,11 +50,6 @@ public class UserServiceImpl implements UserService {
 	public void setConfig(Properties config) {
 		this.assertionVerificationServiceUrl = config
 				.getProperty(CONFIG_ASSERTION_VERIFICATION_SERIVE_URL);
-	}
-
-	@Autowired
-	public void setDb(Database db) {
-		this.db = db;
 	}
 
 	@Override
@@ -86,66 +74,12 @@ public class UserServiceImpl implements UserService {
 		db.createOrUpdateDocument(user.getBaseDocument());
 	}
 
-	public void saveDocument(Document document, List<Paragraph> paragraphs) {
-		// TODO: validate document
-
-		if (document.isSaved()) {
-			for (Paragraph par : paragraphs) {
-				saveParagraph(par, document);
-			}
-			document.setParagraphs(paragraphs);
-			db.updateDocument(document.getBaseDocument());
-		} else {
-			// save document to get document id
-			db.createDocument(document.getBaseDocument());
-			// save paragraphs
-			for (Paragraph par : paragraphs) {
-				saveParagraph(par, document);
-			}
-			// modify document to point to paragraphs and save
-			document.setParagraphs(paragraphs);
-		}
-
-	}
-
-	/**
-	 * Paragraph can only be saved as part of a document
-	 * 
-	 * @param par
-	 * @param document
-	 */
-	private void saveParagraph(Paragraph par, Document document) {
-		if (par.getDocumentId() != null
-				&& !par.getDocumentId().equals(document.getId())) {
-			throw new ValidationException(
-					"Cannot re-assign a paragraph to a different document");
-		}
-		par.setDocument(document);
-
-		// TODO: validate paragraph
-		if (par.isSaved()) {
-			db.updateDocument(par.getBaseDocument());
-		} else {
-			db.createDocument(par.getBaseDocument());
-		}
-	}
-
-	@Override
-	public AbstractDomainObject getById(String id) {
-		try {
-			return AbstractDomainObject.fromDocument(db.getDocument(
-					BaseDocument.class, id));
-		} catch (NotFoundException e) {
-			logger.debug(e);
-		}
-		return null;
-	}
 
 	@Override
 	public User getUserById(String userId) {
-		return null;
+		return (User) getById(userId);
 	}
-
+	
 	@Override
 	public User login(String assertion, String realm)
 			throws MalformedURLException, UnsupportedEncodingException,

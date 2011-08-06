@@ -7,7 +7,7 @@ public class Paragraph extends AbstractUserObject {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(Paragraph.class);
 
-	private static final String PROPERTY_DOCUMENT = "document";
+	public static final String PROPERTY_DOCUMENT = "document";
 	private static final String PROPERTY_CONTENT = "content";
 
 	public Paragraph(User user) {
