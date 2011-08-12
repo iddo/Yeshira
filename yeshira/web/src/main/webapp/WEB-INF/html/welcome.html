@@ -7,7 +7,7 @@
 	src="https://www.google.com/jsapi?key=ABQIAAAAkNgA0ghQr37pbck7FctnSxRjl4Ew3o2j6o8DHUBUN9KxOf6o7hTKI2IW3Pwb00J9oJYwd8wZSVKGpQ"
 	type="text/javascript"></script>
 <script type="text/javascript">
-	google.load("jquery", "1.6.2");
+	google.load("jquery", "1.6.2", {uncompressed:true});
 	google.load("jqueryui", "1.8.14");
 </script>
 <script type="text/javascript">
@@ -46,17 +46,19 @@
 				data : $(this).serialize()
 			}).success(function(data) {
 				if (data.id) {
-					$("body").append($("<div>Object of type '" + data.type + "' returned. id <a href=\"" + data.type + "/" + data.id + "\">" + data.id + "</a></div>" ));
+					$("<div>Object of type '" + data.type + "' returned. id <a href=\"" + data.type + "/" + data.id + "\">" + data.id + "</a></div>").appendTo("body");
 				}
 				console.log(data)
-			}).error(function(data) {
-				console.log(data)
+			}).error(function(jqXHR) {
+				var data = $.parseJSON(jqXHR.responseText);
+				$("<div>שגיאה: "+data.errorMessage+"</div>").addClass("notification").hide().css("position", "absolute").prependTo("body").fadeIn("fast").delay(1500).fadeOut("slow");
+				console.log(data);
 			});
 			return false;
 		});
 	});
 </script>
-<title>בחירה ישירה</title>
+<title>המפלגה הישירה</title>
 </head>
 <body>
 	<img id="signin" src="https://browserid.org/i/sign_in_red.png"

@@ -95,8 +95,8 @@ public class AppConfig {
 		logger.info("Initializing view resolver");
 		InternalResourceViewResolver vr = new InternalResourceViewResolver();
 		vr.setViewClass(JstlView.class);
-		vr.setPrefix("/WEB-INF/jsp/");
-		vr.setSuffix(".jsp");
+		vr.setPrefix("/WEB-INF/html/");
+		vr.setSuffix(".html");
 		return vr;
 	}
 
@@ -141,4 +141,5 @@ public class AppConfig {
 	public PhoneNumberUtil phoneUtil() {
 		return PhoneNumberUtil.getInstance();
 	}
+	
 }
