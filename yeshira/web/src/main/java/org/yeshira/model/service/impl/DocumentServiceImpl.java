@@ -1,5 +1,6 @@
 package org.yeshira.model.service.impl;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.jcouchdb.document.BaseDocument;
@@ -7,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.yeshira.model.Document;
 import org.yeshira.model.Paragraph;
 import org.yeshira.model.service.DocumentService;
+import org.yeshira.model.validators.DocumentValidator;
+import org.yeshira.web.controllers.validation.ValidationError;
 import org.yeshira.web.controllers.validation.exceptions.ValidationException;
 
 @Service
@@ -15,6 +18,11 @@ public class DocumentServiceImpl extends AbstractService implements DocumentServ
 	@Override
 	public void saveDocument(Document document, List<Paragraph> paragraphs) {
 		// TODO: validate document
+		DocumentValidator dv = new DocumentValidator(document);
+		Collection<ValidationError> validate = dv.validate();
+		if (!validate.isEmpty()) {
+			throw new ValidationException(validate);
+		}
 		
 		BaseDocument baseDocument = document.getBaseDocument();
 		if (document.isSaved()) {

@@ -16,7 +16,7 @@ public class Document extends AbstractUserObject {
 	private static final Logger logger = Logger.getLogger(Document.class);
 
 	public static final String PROPERTY_TITLE = "title";
-	private static final String PROPERTY_PARAGRAPHES = "paragraphes";
+	private static final String PROPERTY_PARAGRAPHS = "paragraphs";
 
 	public Document(User user) {
 		super(user);
@@ -40,12 +40,12 @@ public class Document extends AbstractUserObject {
 		for (Paragraph par : paragraphs) {
 			paragraphIds[i++] = par.getId();
 		}
-		setProperty(PROPERTY_PARAGRAPHES, paragraphIds);
+		setProperty(PROPERTY_PARAGRAPHS, paragraphIds);
 	}
 
 	@SuppressWarnings("unchecked")
 	public List<String> getParagraphIds() {
-		return (List<String>) getProperty(PROPERTY_PARAGRAPHES);
+		return (List<String>) getProperty(PROPERTY_PARAGRAPHS);
 	}
 
 }

@@ -74,12 +74,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
 		db.createOrUpdateDocument(user.getBaseDocument());
 	}
 
-
 	@Override
 	public User getUserById(String userId) {
 		return (User) getById(userId);
 	}
-	
+
 	@Override
 	public User login(String assertion, String realm)
 			throws MalformedURLException, UnsupportedEncodingException,
