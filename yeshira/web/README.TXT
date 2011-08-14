@@ -5,5 +5,7 @@ Pre-requisites
 	- Maven Plugin
 		In eclipse, go to Window->Preferences->Maven->User Settings, and choose user settings file settings.xml located in this project
 	- Git Plugin
+	- Jetty server goto Show View->Servers. under servers, right click, new->server. click "download additional server adapters", and choose Jetty.
 * Maven 3
 	Add an environment variable called M3_HOME poiniting to the root of the Maven 3 installation
+	
